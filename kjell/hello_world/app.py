@@ -28,9 +28,13 @@ def lambda_handler(event, context):
         for page in paginator.paginate(Bucket=BUCKET_NAME):
             for obj in page.get('Contents', []):
                 
+                if '.' not in os['Key']:
+                    continue
+                
                 extension = os.path.splitext(obj['Key'])
+                
                 if extension.lower() not in ['.jpg', '.jpeg', '.png']:
-                    continue  # Skip this file
+                    continue
                 # Perform PPE detection using Rekognition
                 rekognition_response = rekognition_client.detect_protective_equipment(
                     Image={
