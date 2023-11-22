@@ -25,7 +25,7 @@ def lambda_handler(event, context):
         paginator = s3_client.get_paginator('list_objects_v2')
         rekognition_results = []  # Store the results
     
-        for page in paginator.paginate(Bucket=BUCKET_NAME):
+        for page in paginator.paginate(Bucket=BUCKET_NAME, Prefix='images/'):
             for obj in page.get('Contents', []):
                 
                 if '.' not in os['Key']:
