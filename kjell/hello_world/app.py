@@ -20,30 +20,36 @@ BUCKET_NAME = os.environ.get("BUCKET_NAME")
 
 def lambda_handler(event, context):
 
-    # List all objects in the S3 bucket
-    paginator = s3_client.get_paginator('list_objects_v2')
-    rekognition_results = []  # Store the results
-
-    for page in paginator.paginate(Bucket=BUCKET_NAME):
-        for obj in page.get('Contents', []):
-            # Perform PPE detection using Rekognition
-            rekognition_response = rekognition_client.detect_protective_equipment(
-                Image={
-                    'S3Object': {
-                        'Bucket': BUCKET_NAME,
-                        'Name': obj['Key']
+    try:
+        # List all objects in the S3 bucket
+        paginator = s3_client.get_paginator('list_objects_v2')
+        rekognition_results = []  # Store the results
+    
+        for page in paginator.paginate(Bucket=BUCKET_NAME):
+            for obj in page.get('Contents', []):
+                # Perform PPE detection using Rekognition
+                rekognition_response = rekognition_client.detect_protective_equipment(
+                    Image={
+                        'S3Object': {
+                            'Bucket': BUCKET_NAME,
+                            'Name': obj['Key']
+                        }
+                    },
+                    SummarizationAttributes={
+                        'MinConfidence': 80,  # Confidence level threshold
+                        'RequiredEquipmentTypes': ['FACE_COVER']
                     }
-                },
-                SummarizationAttributes={
-                    'MinConfidence': 80,  # Confidence level threshold
-                    'RequiredEquipmentTypes': ['FACE_COVER']
-                }
-            )
-            rekognition_results.append(rekognition_response)
-
-    return {
-        "statusCode": 200,
-        "body":  json.dumps(rekognition_results),
-    }
+                )
+                rekognition_results.append(rekognition_response)
+    
+        return {
+            "statusCode": 200,
+            "body":  json.dumps(rekognition_results),
+        }
+    except Exception as error:
+        return {
+            "statusCode": 500,
+            "body": repr(error)
+        }
 
 print(lambda_handler(None, None))
