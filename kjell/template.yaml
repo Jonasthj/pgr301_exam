@@ -65,6 +65,15 @@ Resources:
                 Resource:
                   - !Sub 'arn:aws:s3:::${BUCKET}'
                   - !Sub 'arn:aws:s3:::${BUCKET}/*'
+        - PolicyName: RekognitionAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'rekognition:DetectProtectiveEquipment'
+                Resource:
+                  - '*' 
           
           
 
