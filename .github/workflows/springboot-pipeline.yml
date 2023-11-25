@@ -43,12 +43,12 @@ jobs:
       run: |
         docker tag ${{ secrets.AWS_ECR_REGISTRY }} ${{ secrets.AWS_ECR_REGISTRY }}:candidate-2024-${{ github.sha }}
 
-#    - name: Delete prior :latest images
-#      run: |
-#        existing_latest=$(aws ecr describe-images --repository-name ${{ secrets.AWS_ECR_REGISTRY_REPOSITORY }} --filter tagStatus=TAGGED --query 'images[?contains(imageTags, `latest`)].imageDigest' --output text)
-#        if [ -n "$existing_latest" ]; then
-#          aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REGISTRY_REPOSITORY }} --image-ids imageDigest=$existing_latest
-#        fi
+    - name: Delete prior :latest images
+      run: |
+        existing_latest=$(aws ecr describe-images --repository-name ${{ secrets.AWS_ECR_REGISTRY_REPOSITORY }} --filter tagStatus=TAGGED --query 'images[?contains(imageTags, `latest`)].imageDigest' --output text)
+        if [ -n "$existing_latest" ]; then
+          aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REGISTRY_REPOSITORY }} --image-ids imageDigest=$existing_latest
+        fi
 
     - name: Push docker image
       if: github.ref == 'refs/heads/main'
