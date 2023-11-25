@@ -54,3 +54,4 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: |
         docker push ${{ secrets.AWS_ECR_REGISTRY }}:candidate-2024-${{ github.sha }}
+        docker push ${{ secrets.AWS_ECR_REGISTRY }}
