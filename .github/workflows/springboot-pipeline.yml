@@ -105,6 +105,11 @@ jobs:
     - name: List files in working directory
       run: ls -R
 
+    - name: Print working directory
+      run: pwd
+    
+    - name: Print Terraform version
+      run: terraform version
 
 #    - name: Terraform Apply
 #      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
