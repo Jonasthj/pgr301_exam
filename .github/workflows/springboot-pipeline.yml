@@ -37,8 +37,13 @@ jobs:
 
     - name: Build docker image
       run: |
-        docker build -t ${{ secrets.AWS_ECR_REGISTRY }}:${{ github.sha }}:latest .
-        
+        docker build -t ${{ secrets.AWS_ECR_REGISTRY }} .
+
+    - name: Tag Docker image
+      run: |
+        docker tag ${{ secrets.AWS_ECR_REGISTRY }} ${{ secrets.AWS_ECR_REGISTRY }}:latest
+        docker tag ${{ secrets.AWS_ECR_REGISTRY }} ${{ secrets.AWS_ECR_REGISTRY }}:${{ github.sha }}
+
     - name: Push docker image
       if: github.ref == 'refs/heads/main'
       run: |
