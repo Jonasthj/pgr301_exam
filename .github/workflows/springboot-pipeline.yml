@@ -84,9 +84,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
     
-    - name: Navigate to terraform directory
-      run: cd infra
-    
     - name: Terraform setup
       uses: hashicorp/setup-terraform@v2
 
@@ -102,15 +99,8 @@ jobs:
       if: steps.plan.outcome == 'failure'
       run: exit 
 
-    - name: List files in working directory
-      run: ls -R
-
-    - name: Print working directory
-      run: pwd
-    
-    - name: Print Terraform version
-      run: terraform version
-
-#    - name: Terraform Apply
-#      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-#      run: terraform apply -var="apprunner_servicename=$APPRUNNER_SERVICENAME" -var="ecr_repository_uri=$ECR_REPOSITORY_URI" -var="docker_image_tag=$DOCKER_IMAGE_TAG"  -auto-approve
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        cd infra
+        terraform apply -var="apprunner_servicename=$APPRUNNER_SERVICENAME" -var="ecr_repository_uri=$ECR_REPOSITORY_URI" -var="docker_image_tag=$DOCKER_IMAGE_TAG"  -auto-approve
