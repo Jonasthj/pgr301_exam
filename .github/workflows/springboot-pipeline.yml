@@ -101,6 +101,11 @@ jobs:
     - name: Terraform Plan Status
       if: steps.plan.outcome == 'failure'
       run: exit 
-    - name: Terraform Apply
-      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      run: terraform apply -var="apprunner_servicename=$APPRUNNER_SERVICENAME" -var="ecr_repository_uri=$ECR_REPOSITORY_URI" -var="docker_image_tag=$DOCKER_IMAGE_TAG"  -auto-approve
+
+    - name: List files in working directory
+      run: ls -R
+
+
+#    - name: Terraform Apply
+#      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+#      run: terraform apply -var="apprunner_servicename=$APPRUNNER_SERVICENAME" -var="ecr_repository_uri=$ECR_REPOSITORY_URI" -var="docker_image_tag=$DOCKER_IMAGE_TAG"  -auto-approve
