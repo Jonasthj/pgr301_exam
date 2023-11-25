@@ -39,7 +39,7 @@ jobs:
       run: |
         docker build -t ${{ secrets.AWS_ECR_REGISTRY }}:${{ github.sha }} .
         
-#    - name: Push docker image
-#      if: github.ref == 'refs/heads/main'
-#     run: |
-#        docker push ${{ secrets.AWS_ECR_REGISTRY }}:${{ github.sha }}
+    - name: Push docker image
+     if: github.ref == 'refs/heads/main'
+     run: |
+       docker push ${{ secrets.AWS_ECR_REGISTRY }}:${{ github.sha }}
