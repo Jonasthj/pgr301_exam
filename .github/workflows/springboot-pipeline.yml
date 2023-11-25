@@ -82,18 +82,16 @@ jobs:
       uses: hashicorp/setup-terraform@v2
 
     - name: Terraform Init
-        id: init
-        run: terraform init
+      id: init
+      run: terraform init
 
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan   -var="apprunner_servicename=$APPRUNNER_SERVICENAME" -var="ecr_repository_uri=$ECR_REPOSITORY_URI" -var="docker_image_tag=$DOCKER_IMAGE_TAG" -no-color
-        continue-on-error: true
-
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -var="prefix=$PREFIX" -var="image=$IMAGE"  -auto-approve
+    - name: Terraform Plan
+      id: plan
+      run: terraform plan   -var="apprunner_servicename=$APPRUNNER_SERVICENAME" -var="ecr_repository_uri=$ECR_REPOSITORY_URI" -var="docker_image_tag=$DOCKER_IMAGE_TAG" -no-color
+      continue-on-error: true
+    - name: Terraform Plan Status
+      if: steps.plan.outcome == 'failure'
+      run: exit 
+    - name: Terraform Apply
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: terraform apply -var="apprunner_servicename=$APPRUNNER_SERVICENAME" -var="ecr_repository_uri=$ECR_REPOSITORY_URI" -var="docker_image_tag=$DOCKER_IMAGE_TAG"  -auto-approve
