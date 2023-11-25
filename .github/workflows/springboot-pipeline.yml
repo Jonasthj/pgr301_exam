@@ -11,8 +11,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
+    
     - name: Checkout repository
       uses: actions/checkout@v2
 
@@ -34,26 +34,66 @@ jobs:
 
     - name: ECR login
       uses: aws-actions/amazon-ecr-login@v2
+      
+  build_and_push_docker:
+    name: Build and publish docker image to ECR
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    
+      - name: Build docker image
+        run: |
+          docker build -t ${{ secrets.AWS_ECR_REGISTRY }} .
+  
+      - name: Tag docker image
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker tag ${{ secrets.AWS_ECR_REGISTRY }} ${{ secrets.AWS_ECR_REGISTRY }}:candidate-2024-${{ github.sha }}
+  
+      - name: Delete prior :latest images
+        if: github.ref == 'refs/heads/main'
+        run: |
+          existing_latest=$(aws ecr describe-images --repository-name ${{ secrets.AWS_ECR_REGISTRY_REPOSITORY }} --filter tagStatus=TAGGED --query 'images[?contains(imageTags, `latest`)].imageDigest' --output text)
+          if [ -n "$existing_latest" ]; then
+            aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REGISTRY_REPOSITORY }} --image-ids imageDigest=$existing_latest
+          fi
+  
+      - name: Push docker image
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker push ${{ secrets.AWS_ECR_REGISTRY }}:candidate-2024-${{ github.sha }}
+          docker push ${{ secrets.AWS_ECR_REGISTRY }}
 
-    - name: Build docker image
-      run: |
-        docker build -t ${{ secrets.AWS_ECR_REGISTRY }} .
+  terraform:
+    name: "Terraform"
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: eu-west-1
+      APPRUNNER_SERVICENAME: candidate-2042
+      ECR_REPOSITORY_URI: ${{ secrets.AWS_ECR_REGISTRY }}
+      DOCKER_IMAGE_TAG: latest
+    
+    steps: 
+    
+    - name: Terraform setup
+      uses: hashicorp/setup-terraform@v2
 
-    - name: Tag docker image
-      if: github.ref == 'refs/heads/main'
-      run: |
-        docker tag ${{ secrets.AWS_ECR_REGISTRY }} ${{ secrets.AWS_ECR_REGISTRY }}:candidate-2024-${{ github.sha }}
+    - name: Terraform Init
+        id: init
+        run: terraform init
 
-    - name: Delete prior :latest images
-      if: github.ref == 'refs/heads/main'
-      run: |
-        existing_latest=$(aws ecr describe-images --repository-name ${{ secrets.AWS_ECR_REGISTRY_REPOSITORY }} --filter tagStatus=TAGGED --query 'images[?contains(imageTags, `latest`)].imageDigest' --output text)
-        if [ -n "$existing_latest" ]; then
-          aws ecr batch-delete-image --repository-name ${{ secrets.AWS_ECR_REGISTRY_REPOSITORY }} --image-ids imageDigest=$existing_latest
-        fi
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan   -var="apprunner_servicename=$APPRUNNER_SERVICENAME" -var="ecr_repository_uri=$ECR_REPOSITORY_URI" -var="docker_image_tag=$DOCKER_IMAGE_TAG" -no-color
+        continue-on-error: true
 
-    - name: Push docker image
-      if: github.ref == 'refs/heads/main'
-      run: |
-        docker push ${{ secrets.AWS_ECR_REGISTRY }}:candidate-2024-${{ github.sha }}
-        docker push ${{ secrets.AWS_ECR_REGISTRY }}
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -var="prefix=$PREFIX" -var="image=$IMAGE"  -auto-approve
