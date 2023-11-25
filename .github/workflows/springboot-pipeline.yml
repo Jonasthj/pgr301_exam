@@ -1,3 +1,5 @@
+name: Build and push spring-boot docker image
+
 on:
   push:
     branches:
@@ -24,10 +26,7 @@ jobs:
       run: mvn clean package -DskipTests
 
     - name: ECR login
-      uses: aws-actions/amazon-ecr-login@v1
-      with:
-        registry: ${{ secrets.AWS_ECR_REGISTRY }}
-        region: eu-west-1
+      uses: aws-actions/amazon-ecr-login@v2
 
     - name: Build docker image
       run: |

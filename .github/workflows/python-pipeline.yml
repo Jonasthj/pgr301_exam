@@ -1,3 +1,5 @@
+name: SAM build and deploy python lambda function 
+
 on:
   workflow_dispatch:
   push:
