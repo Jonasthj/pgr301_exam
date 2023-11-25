@@ -25,6 +25,9 @@ jobs:
 
     - name: ECR login
       uses: aws-actions/amazon-ecr-login@v1
+      with:
+        registry: ${{ secrets.AWS_ECR_REGISTRY }}
+        region: eu-west-1
 
     - name: Build docker image
       run: |
