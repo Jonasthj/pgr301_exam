@@ -1,0 +1,36 @@
+on:
+  push:
+    branches:
+      - '**'
+    paths: 
+      - 'src/**'
+      - '.github/workflows/springboot-pipeline.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: JDK setup
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '11'
+
+    - name: Maven package
+      run: mvn clean package -DskipTests
+
+    - name: ECR login
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build docker image
+      run: |
+        docker build -t ${{ secrets.AWS_ECR_REGISTRY }}:${{ github.sha }} .
+        
+#    - name: Push docker image
+#      if: github.ref == 'refs/heads/main'
+#     run: |
+#        docker push ${{ secrets.AWS_ECR_REGISTRY }}:${{ github.sha }}
