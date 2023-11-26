@@ -1,0 +1,7 @@
+management.metrics.export.cloudwatch.namespace=candidate-2042-metrics
+management.metrics.export.cloudwatch.enabled=true
+management.metrics.export.cloudwatch.step=1m
+logging.level.io.micrometer.cloudwatch2=DEBUG
+management.endpoints.web.exposure.include=*
+management.endpoints.web.base-path=/actuator
+management.endpoints.web.exposure.include=health,info
