@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-
+import io.micrometer.core.annotation.Timed;
 
 @RestController
 public class RekognitionController implements ApplicationListener<ApplicationReadyEvent> {
@@ -79,6 +79,19 @@ public class RekognitionController implements ApplicationListener<ApplicationRea
         }
         PPEResponse ppeResponse = new PPEResponse(bucketName, classificationResponses);
         return ResponseEntity.ok(ppeResponse);
+    }
+    
+   @GetMapping("/test-timer")
+    @Timed(value = "RekognitionController.test-timer", description = "[Test Metric] Test timer metric on test-timer endpoint")
+    public ResponseEntity<String> hello() {
+        // Simulate some processing
+        try {
+            Thread.sleep(500); // Sleep for 500 milliseconds to simulate work
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        return ResponseEntity.ok("Hello, Micrometer!");
     }
 
     /**
